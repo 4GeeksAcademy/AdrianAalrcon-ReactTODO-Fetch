@@ -34,7 +34,8 @@ const Home = () => {
 
     // Execute at the beggining
     useEffect(() => {
-        getAllUsers()
+        getAllUsers();
+        selectUserTasks();
     }, [])
 
     // Create new user
@@ -52,15 +53,19 @@ const Home = () => {
             });
         }
     }
+
     // Delete  user
     const deleteUser = async (userName) => {
         try {
-            const response = await fetch(`https://playground.4geeks.com/todo/users/${userName}`, {
+            const response = await fetch(`https://playground.4geeks.com/todo/todos/${userName}`, {
                 method: 'DELETE',
             });
 
             if (response.ok) {
                 getAllUsers();
+                if (userName === selectedUser) {
+                    setselectedUser('');
+                }
             } else {
                 alert("Error while deleting user: " + response.statusText);
             }
@@ -69,10 +74,32 @@ const Home = () => {
         }
     };
 
+    // Select user
     const selectUser = (userName) => {
-        setselectedUser(userName); // Guarda el nombre del usuario en selectedUser
-        console.log("Usuario seleccionado:", selectedUser); // Para verificar la selección
+        setselectedUser(userName);
     };
+
+    // Select user tasks
+    const selectUserTasks = async () => {
+        try {
+            const response = await fetch('https://playground.4geeks.com/todo/todos/david'); // Solicitud GET
+            if (!response.ok) { // Verificar si la respuesta es exitosa
+                throw new Error(`Error fetching tasks: ${response.statusText}`); // Lanzar error si no es exitosa
+            }
+
+            const data = await response.json(); // Convertir la respuesta a JSON
+            console.log('User tasks:', data); // Imprimir las tareas del usuario para ver el resultado
+            if (data.hasOwnProperty('todos') && Array.isArray(data)) {
+                setTasks(data);
+            } else {
+                console.error("La propiedad 'users' no es un array o no existe.");
+            }
+
+        } catch (error) { // Manejar errores
+            console.error('Error while fetching user tasks:', error); // Imprimir el error para el manejo de excepciones
+        }
+    };
+
 
     // ........................
     const handleAddTask = () => {
@@ -92,15 +119,22 @@ const Home = () => {
         }
     };
 
+    console.log("tareas:");
+    console.log(tasks);
     return (
         <div className="container mt-5">
-            <div className="row justify-content-center">
-                <div className="col-md-6">
+            <div className="row g-3">
+                <div className="col-md-6 ">
                     <div className="card shadow">
                         <div className="card-body">
                             <div className="input-group mb-3">
-                                <input placeholder="New user name ..." className="form-control" value={newUser} onChange={(e) => setNewUser(e.target.value)} />
-                                <button className="btn btn-success" onClick={createNewUser} >
+                                <input
+                                    placeholder="New user name ..."
+                                    className="form-control"
+                                    value={newUser}
+                                    onChange={(e) => setNewUser(e.target.value)}
+                                />
+                                <button className="btn btn-success" onClick={createNewUser}>
                                     Create User
                                 </button>
                             </div>
@@ -114,14 +148,17 @@ const Home = () => {
                                             name={user.name}
                                             id={user.id}
                                             onDelete={deleteUser}
-                                            onSelect={selectUser} />
-                                    ))) : (<li>No users found</li>)}
+                                            onSelect={selectUser}
+                                        />
+                                    ))
+                                ) : (
+                                    <li>No users found</li>
+                                )}
                             </ul>
                         </div>
                     </div>
                 </div>
-            </div>
-            <div className="row justify-content-center mt-2">
+
                 <div className="col-md-6">
                     <div className="card shadow">
                         <div className="card-body">
@@ -156,10 +193,10 @@ const Home = () => {
                                     />
                                 ))}
                             </ul>
+                            <p className="small text-left ms-3 mt-2">
+                                {tasks.length === 0 ? "No tasks, add a task" : `${tasks.length} item(s) left`}
+                            </p>
                         </div>
-                        <p className="small text-left ms-3 mt-2">
-                            {tasks.length === 0 ? "No tasks, add a task" : `${tasks.length} item(s) left`}
-                        </p>
                     </div>
                 </div>
             </div>
