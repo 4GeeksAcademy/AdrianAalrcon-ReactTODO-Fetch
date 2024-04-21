@@ -3,13 +3,15 @@ import TaskItem from "./taskitem";
 import UserItem from "./useritem";
 
 const Home = () => {
+
     const [taskInput, setTaskInput] = useState("");
     const [tasks, setTasks] = useState([]);
+
     const [users, setUsers] = useState([]);
     const [newUser, setNewUser] = useState("");
     const [selectedUser, setselectedUser] = useState("");
 
-    // Obtener la lista de usuarios
+    // Take users list
     const getAllUsers = useCallback(async () => {
         try {
             const response = await fetch("https://playground.4geeks.com/todo/users/");
@@ -25,7 +27,7 @@ const Home = () => {
         }
     }, []);
 
-    // Obtener las tareas del usuario seleccionado
+    // Take user tasks
     const getUserTasks = useCallback(async (userName) => {
         try {
             const response = await fetch(
@@ -43,10 +45,43 @@ const Home = () => {
     }, []);
 
     useEffect(() => {
-        getAllUsers(); // Obtener la lista de usuarios al principio
+        getAllUsers();
     }, [getAllUsers]);
 
-    // Crear un nuevo usuario
+    const createTask = useCallback(async () => {
+        if (taskInput.trim() && selectedUser) {
+            try {
+                const response = await fetch(
+                    `https://playground.4geeks.com/todo/users/${selectedUser}`, // Endpoint corregido
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({
+                            label: taskInput.trim(), // Eliminar espacios en blanco
+                            is_done: false,
+                        }),
+                    }
+                );
+
+                if (response.ok) {
+                    setTaskInput("");  // Limpiar el campo de entrada
+                    await getUserTasks(selectedUser);  // Actualizar las tareas del usuario seleccionado
+                } else {
+                    console.error("Error while creating new task:", response.statusText);
+                }
+            } catch (error) {
+                console.error("Error while creating new task:", error);
+            }
+        } else {
+            console.error("Task input or selected user is missing");
+        }
+    }, [taskInput, selectedUser, getUserTasks]);
+
+
+
+    // Create an user
     const createNewUser = useCallback(async () => {
         if (newUser) {
             try {
@@ -66,7 +101,7 @@ const Home = () => {
         }
     }, [newUser, getAllUsers]);
 
-    // Eliminar un usuario
+    // Delete an user
     const deleteUser = useCallback(async (userName) => {
         try {
             const response = await fetch(`https://playground.4geeks.com/todo/users/${userName}`, {
@@ -86,10 +121,10 @@ const Home = () => {
         }
     }, [selectedUser, getAllUsers]);
 
-    // Seleccionar un usuario y obtener sus tareas
+    // Take user tasks
     const selectUser = useCallback((userName) => {
         setselectedUser(userName);
-        getUserTasks(userName); // Obtener las tareas del usuario seleccionado
+        getUserTasks(userName);
     }, [getUserTasks]);
 
     return (
@@ -126,7 +161,7 @@ const Home = () => {
 
                 <div className="col-md-6">
                     <div className="card shadow">
-                        <div class="card-body">
+                        <div className="card-body">
                             <h1 className="card-title text-center mb-4">TODO LIST</h1>
                             {selectedUser === '' ? "" : <p className="small text-center ms-3 mt-2">User: {selectedUser}</p>}
                             <div className="input-group mb-3">
@@ -136,9 +171,9 @@ const Home = () => {
                                     className="form-control"
                                     placeholder="What needs to be done?"
                                     onChange={(e) => setTaskInput(e.target.value)}
-                                    onKeyDown={""}
+                                    onKeyDown={createTask}
                                 />
-                                <button className="btn btn-dark" onClick={""}>
+                                <button className="btn btn-dark" onClick={createTask}>
                                     Add
                                 </button>
                             </div>
