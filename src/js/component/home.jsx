@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import TaskItem from "./taskitem";
-import UserName from "./username";
+import UserItem from "./useritem";
 
 const Home = () => {
     const [taskInput, setTaskInput] = useState("");
@@ -8,6 +8,7 @@ const Home = () => {
 
     const [users, setUsers] = useState([]);
     const [newUser, setNewUser] = useState('');
+    const [selectedUser, setselectedUser] = useState('');
 
 
     const getAllUsers = async () => {
@@ -51,6 +52,28 @@ const Home = () => {
             });
         }
     }
+    // Delete  user
+    const deleteUser = async (userName) => {
+        try {
+            const response = await fetch(`https://playground.4geeks.com/todo/users/${userName}`, {
+                method: 'DELETE',
+            });
+
+            if (response.ok) {
+                getAllUsers();
+            } else {
+                alert("Error while deleting user: " + response.statusText);
+            }
+        } catch (error) {
+            alert("Failed to fetch: " + error.message);
+        }
+    };
+
+    const selectUser = (userName) => {
+        setselectedUser(userName); // Guarda el nombre del usuario en selectedUser
+        console.log("Usuario seleccionado:", selectedUser); // Para verificar la selección
+    };
+
     // ........................
     const handleAddTask = () => {
         if (taskInput.trim() !== "") {
@@ -69,7 +92,6 @@ const Home = () => {
         }
     };
 
-    console.log(users);
     return (
         <div className="container mt-5">
             <div className="row justify-content-center">
@@ -82,11 +104,17 @@ const Home = () => {
                                     Create User
                                 </button>
                             </div>
-                            <h5>User List: </h5>
+                            <p className="mb-1 ms-1 fw-bold">Users List:</p>
                             <ul className="list-group">
                                 {Array.isArray(users) ? (
                                     users.map((user, index) => (
-                                        <UserName key={index} index={index} name={user.name} />
+                                        <UserItem
+                                            key={index}
+                                            index={index}
+                                            name={user.name}
+                                            id={user.id}
+                                            onDelete={deleteUser}
+                                            onSelect={selectUser} />
                                     ))) : (<li>No users found</li>)}
                             </ul>
                         </div>
@@ -97,7 +125,14 @@ const Home = () => {
                 <div className="col-md-6">
                     <div className="card shadow">
                         <div className="card-body">
-                            <h1 className="card-title text-center mb-4">TODO LIST</h1>
+                            <div className="d-flex flex-column justify-content-between align-items-center">
+                                <h1 className="card-title text-center mb-0" style={{ flex: 1 }}>
+                                    TODO LIST
+                                </h1>
+                                <p className="me-1 mb-3">
+                                    {selectedUser === "" ? "" : "User: " + selectedUser}
+                                </p>
+                            </div>
                             <div className="input-group mb-3">
                                 <input
                                     value={taskInput}
