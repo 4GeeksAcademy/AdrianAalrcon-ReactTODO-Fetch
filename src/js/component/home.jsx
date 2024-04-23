@@ -162,7 +162,7 @@ const Home = () => {
     return (
         <div className="container mt-5">
             <div className="row g-3">
-                <div className="col-md-6">
+                <div className="col-md-4">
                     <div className="card shadow">
                         <div className="card-body">
                             <div className="input-group mb-3">
@@ -192,7 +192,7 @@ const Home = () => {
                     </div>
                 </div>
 
-                <div className="col-md-6 mb-4">
+                <div className="col-md-8 mb-4">
                     <div className="card shadow">
                         <div className="card-body">
                             <h1 className="card-title text-center mb-4">TODO LIST</h1>
