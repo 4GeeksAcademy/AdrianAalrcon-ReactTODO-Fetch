@@ -31,23 +31,6 @@ const Home = () => {
         getAllUsers();
     }, [getAllUsers]);
 
-    // Take user tasks
-    const getUserTasks = async (userName) => {
-        try {
-            const response = await fetch(
-                `https://playground.4geeks.com/todo/users/${userName}`
-            );
-            if (response.ok) {
-                const data = await response.json();
-                setTasks(data.todos);
-            } else {
-                console.error("Error fetching tasks:", response.statusText);
-            }
-        } catch (error) {
-            console.error("Error while fetching user tasks:", error);
-        }
-    };
-
     // Create an user
     const createNewUser = async () => {
         if (newUser) {
@@ -93,11 +76,27 @@ const Home = () => {
         }
     };
 
+    // Take user tasks
+    const getUserTasks = async (userName) => {
+        try {
+            const response = await fetch(
+                `https://playground.4geeks.com/todo/users/${userName}`
+            );
+            if (response.ok) {
+                const data = await response.json();
+                setTasks(data.todos);
+            } else {
+                console.error("Error fetching tasks:", response.statusText);
+            }
+        } catch (error) {
+            console.error("Error while fetching user tasks:", error);
+        }
+    };
+
+    // Create new task
     const createTask = async () => {
         if (taskInput.trim() && selectedUser) {
             try {
-                console.log("tarea: ", taskInput.trim());
-                console.log("user: ", selectedUser)
                 const response = await fetch(
                     `https://playground.4geeks.com/todo/todos/${selectedUser}`,
                     {
@@ -117,8 +116,6 @@ const Home = () => {
                     await getUserTasks(selectedUser);
                 } else {
                     console.error("Error while creating task:", response.statusText);
-                    const errorDetails = await response.text();
-                    console.error("Error details:", errorDetails);
                 }
             } catch (error) {
                 console.error("Error while creating task:", error);
@@ -126,6 +123,28 @@ const Home = () => {
         } else {
             alert("Select a user");
             console.error("Name task missing or user not selected");
+        }
+    };
+
+    // Eliminar una tarea por ID
+    const deleteTask = async (taskId) => {
+        if (selectedUser) {
+            try {
+                const response = await fetch(
+                    `https://playground.4geeks.com/todo/todos/${taskId}`,
+                    {
+                        method: "DELETE",
+                    }
+                );
+
+                if (response.ok) {
+                    await getUserTasks(selectedUser); // Actualizar las tareas
+                } else {
+                    console.error("Error while deleting task:", response.statusText);
+                }
+            } catch (error) {
+                console.error("Error while deleting task:", error);
+            }
         }
     };
 
@@ -197,6 +216,7 @@ const Home = () => {
                                         key={task.id}
                                         label={task.label}
                                         isDone={task.is_done}
+                                        onDelete={() => deleteTask(task.id)}
                                     />
                                 ))}
                             </ul>
