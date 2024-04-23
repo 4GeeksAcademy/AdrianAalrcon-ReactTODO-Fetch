@@ -126,7 +126,7 @@ const Home = () => {
         }
     };
 
-    // Eliminar una tarea por ID
+    // Delete task by ID
     const deleteTask = async (taskId) => {
         if (selectedUser) {
             try {
@@ -138,7 +138,7 @@ const Home = () => {
                 );
 
                 if (response.ok) {
-                    await getUserTasks(selectedUser); // Actualizar las tareas
+                    await getUserTasks(selectedUser);
                 } else {
                     console.error("Error while deleting task:", response.statusText);
                 }
