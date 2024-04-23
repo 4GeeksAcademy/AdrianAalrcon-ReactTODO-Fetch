@@ -12,7 +12,7 @@ const Home = () => {
     const [selectedUser, setselectedUser] = useState("");
 
     // Take users list
-    const getAllUsers = useCallback(async () => {
+    const getAllUsers = async () => {
         try {
             const response = await fetch("https://playground.4geeks.com/todo/users/");
             const data = await response.json();
@@ -20,15 +20,19 @@ const Home = () => {
             if (response.ok && Array.isArray(data.users)) {
                 setUsers(data.users);
             } else {
-                console.error("Error al obtener usuarios: la respuesta no es válida.");
+                console.error("Error while geting users: Not valid response.");
             }
         } catch (error) {
-            console.error("Error al obtener usuarios:", error);
+            console.error("Error while geting users:", error);
         }
-    }, []);
+    };
+
+    useEffect(() => {
+        getAllUsers();
+    }, [getAllUsers]);
 
     // Take user tasks
-    const getUserTasks = useCallback(async (userName) => {
+    const getUserTasks = async (userName) => {
         try {
             const response = await fetch(
                 `https://playground.4geeks.com/todo/users/${userName}`
@@ -42,47 +46,10 @@ const Home = () => {
         } catch (error) {
             console.error("Error while fetching user tasks:", error);
         }
-    }, []);
-
-    useEffect(() => {
-        getAllUsers();
-    }, [getAllUsers]);
-
-    const createTask = useCallback(async () => {
-        if (taskInput.trim() && selectedUser) {
-            try {
-                const response = await fetch(
-                    `https://playground.4geeks.com/todo/users/${selectedUser}`, // Endpoint corregido
-                    {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                        },
-                        body: JSON.stringify({
-                            label: taskInput.trim(), // Eliminar espacios en blanco
-                            is_done: false,
-                        }),
-                    }
-                );
-
-                if (response.ok) {
-                    setTaskInput("");  // Limpiar el campo de entrada
-                    await getUserTasks(selectedUser);  // Actualizar las tareas del usuario seleccionado
-                } else {
-                    console.error("Error while creating new task:", response.statusText);
-                }
-            } catch (error) {
-                console.error("Error while creating new task:", error);
-            }
-        } else {
-            console.error("Task input or selected user is missing");
-        }
-    }, [taskInput, selectedUser, getUserTasks]);
-
-
+    };
 
     // Create an user
-    const createNewUser = useCallback(async () => {
+    const createNewUser = async () => {
         if (newUser) {
             try {
                 const response = await fetch(`https://playground.4geeks.com/todo/users/${newUser}`, {
@@ -99,15 +66,20 @@ const Home = () => {
                 console.error("Error while creating new user:", error);
             }
         }
-    }, [newUser, getAllUsers]);
+    };
+
+    const handleUserInputKeyDown = (e) => {
+        if (e.key === "Enter") {
+            createNewUser();
+        }
+    };
 
     // Delete an user
-    const deleteUser = useCallback(async (userName) => {
+    const deleteUser = async (userName) => {
         try {
             const response = await fetch(`https://playground.4geeks.com/todo/users/${userName}`, {
                 method: "DELETE",
             });
-
             if (response.ok) {
                 getAllUsers();
                 if (userName === selectedUser) {
@@ -119,13 +91,54 @@ const Home = () => {
         } catch (error) {
             console.error("Failed to delete user:", error);
         }
-    }, [selectedUser, getAllUsers]);
+    };
 
-    // Take user tasks
-    const selectUser = useCallback((userName) => {
+    const createTask = async () => {
+        if (taskInput.trim() && selectedUser) {
+            try {
+                console.log("tarea: ", taskInput.trim());
+                console.log("user: ", selectedUser)
+                const response = await fetch(
+                    `https://playground.4geeks.com/todo/todos/${selectedUser}`,
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({
+                            label: taskInput.trim(),
+                            is_done: false,
+                        }),
+                    }
+                );
+
+                if (response.ok) {
+                    setTaskInput("");
+                    await getUserTasks(selectedUser);
+                } else {
+                    console.error("Error while creating task:", response.statusText);
+                    const errorDetails = await response.text();
+                    console.error("Error details:", errorDetails);
+                }
+            } catch (error) {
+                console.error("Error while creating task:", error);
+            }
+        } else {
+            alert("Select a user");
+            console.error("Name task missing or user not selected");
+        }
+    };
+
+    const handleTaskInputKeyDown = (e) => {
+        if (e.key === "Enter") {
+            createTask();
+        }
+    };
+
+    const selectUser = (userName) => {
         setselectedUser(userName);
         getUserTasks(userName);
-    }, [getUserTasks]);
+    };
 
     return (
         <div className="container mt-5">
@@ -139,6 +152,7 @@ const Home = () => {
                                     className="form-control"
                                     value={newUser}
                                     onChange={(e) => setNewUser(e.target.value)}
+                                    onKeyDown={handleUserInputKeyDown}
                                 />
                                 <button className="btn btn-success" onClick={createNewUser}>
                                     Create User
@@ -151,7 +165,7 @@ const Home = () => {
                                         key={user.id}
                                         name={user.name}
                                         onDelete={deleteUser}
-                                        onSelect={() => selectUser(user.name)} // Seleccionar usuario
+                                        onSelect={() => selectUser(user.name)}
                                     />
                                 ))}
                             </ul>
@@ -159,7 +173,7 @@ const Home = () => {
                     </div>
                 </div>
 
-                <div className="col-md-6">
+                <div className="col-md-6 mb-4">
                     <div className="card shadow">
                         <div className="card-body">
                             <h1 className="card-title text-center mb-4">TODO LIST</h1>
@@ -171,9 +185,9 @@ const Home = () => {
                                     className="form-control"
                                     placeholder="What needs to be done?"
                                     onChange={(e) => setTaskInput(e.target.value)}
-                                    onKeyDown={createTask}
+                                    onKeyDown={handleTaskInputKeyDown}
                                 />
-                                <button className="btn btn-dark" onClick={createTask}>
+                                <button className="btn btn-dark" onClick={handleTaskInputKeyDown}>
                                     Add
                                 </button>
                             </div>
