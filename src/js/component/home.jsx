@@ -29,7 +29,7 @@ const Home = () => {
 
     useEffect(() => {
         getAllUsers();
-    }, [getAllUsers]);
+    }, []);
 
     // Create an user
     const createNewUser = async () => {
@@ -50,6 +50,14 @@ const Home = () => {
             }
         }
     };
+
+
+    // const getUser = async () =>{
+    //     await fetch(`https://playground.4geeks.com/todo/users/${newUser}`).then(resp => {
+    //         return resp.json();
+
+    //     })
+    // }
 
     const handleUserInputKeyDown = (e) => {
         if (e.key === "Enter") {
